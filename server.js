@@ -2,6 +2,7 @@ const express = require("express");
 const app = express();
 const port = 3000;
 const fs = require("fs");
+const serverless = require("serverless-http");
 
 app.use(express.json());
 
@@ -96,3 +97,5 @@ app.get("/organizer", (req, res) => {
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
 });
+
+module.exports.handler = serverless(app);
