@@ -1,21 +1,18 @@
 const express = require("express");
-const app = express();
-const port = 3000;
-const fs = require("fs");
 const serverless = require("serverless-http");
+const fs = require("fs").promises;
+const path = require("path");
+
+const app = express();
+const router = express.Router();
 
 app.use(express.json());
 
-app.get("/events/:id", (req, res) => {
+router.get("/events/:id", async (req, res) => {
   const eventId = parseInt(req.params.id);
 
-  fs.readFile("db.json", "utf8", (err, data) => {
-    if (err) {
-      console.error(err);
-      res.status(500).json({ message: "Internal server error" });
-      return;
-    }
-
+  try {
+    const data = await fs.readFile(path.join(__dirname, "db.json"), "utf8");
     const jsonData = JSON.parse(data);
     const event = jsonData.events.find((event) => event.id === eventId);
 
@@ -24,81 +21,24 @@ app.get("/events/:id", (req, res) => {
     } else {
       res.json(event);
     }
-  });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Internal server error" });
+  }
 });
 
-// Define routes to get various parts of the JSON data
-app.get("/events", (req, res) => {
-  fs.readFile("db.json", "utf8", (err, data) => {
-    if (err) {
-      console.error(err);
-      res.status(500).json({ message: "Internal server error" });
-      return;
-    }
-
+router.get("/events", async (req, res) => {
+  try {
+    const data = await fs.readFile(path.join(__dirname, "db.json"), "utf8");
     const jsonData = JSON.parse(data);
     res.json(jsonData.events);
-  });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Internal server error" });
+  }
 });
 
-app.get("/users", (req, res) => {
-  fs.readFile("db.json", "utf8", (err, data) => {
-    if (err) {
-      console.error(err);
-      res.status(500).json({ message: "Internal server error" });
-      return;
-    }
-
-    const jsonData = JSON.parse(data);
-    res.json(jsonData.users);
-  });
-});
-
-app.get("/referral_codes", (req, res) => {
-  fs.readFile("db.json", "utf8", (err, data) => {
-    if (err) {
-      console.error(err);
-      res.status(500).json({ message: "Internal server error" });
-      return;
-    }
-
-    const jsonData = JSON.parse(data);
-    res.json(jsonData.referral_codes);
-  });
-});
-
-app.get("/coupons", (req, res) => {
-  fs.readFile("db.json", "utf8", (err, data) => {
-    if (err) {
-      console.error(err);
-      res.status(500).json({ message: "Internal server error" });
-      return;
-    }
-
-    const jsonData = JSON.parse(data);
-    res.json(jsonData.coupons);
-  });
-});
-
-app.get("/organizer", (req, res) => {
-  fs.readFile("db.json", "utf8", (err, data) => {
-    if (err) {
-      console.error(err);
-      res.status(500).json({ message: "Internal server error" });
-      return;
-    }
-
-    const jsonData = JSON.parse(data);
-    res.json(jsonData.organizer);
-  });
-});
-
-// Start the server
-app.listen(port, () => {
-  console.log(`Server is running on port ${port}`);
-});
-
-app.use(`/.netlify/functions/api`, router);
+app.use(`/`, router);
 
 module.exports = app;
 module.exports.handler = serverless(app);
