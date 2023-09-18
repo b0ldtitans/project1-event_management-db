@@ -7,6 +7,7 @@ const app = express();
 const router = express.Router();
 
 app.use(express.json());
+app.use(`/`, router);
 
 router.get("/events/:id", async (req, res) => {
   const eventId = parseInt(req.params.id);
@@ -37,8 +38,6 @@ router.get("/events", async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 });
-
-app.use(`/`, router);
 
 module.exports = app;
 module.exports.handler = serverless(app);
